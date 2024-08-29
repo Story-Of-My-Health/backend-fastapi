@@ -9,7 +9,7 @@ from db_initializer import Base
 class User(Base):
     __tablename__ = "user"
     id = Column(Integer, nullable=False, primary_key=True)
-    username = Column(LargeBinary, nullable=False, unique=True)
+    username = Column(String, nullable=False, unique=True)
     email = Column(String(225), nullable=True)
     hashed_password = Column(LargeBinary, nullable=False)
 
