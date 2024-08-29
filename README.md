@@ -49,5 +49,4 @@ alembic upgrade head
 uvicorn main:app --reload
 ```
 
-The project will be accessible at http://localhost:8000.
 The project documentation will be accessible at http://localhost:8000/docs.
