@@ -9,6 +9,7 @@ from db_initializer import Base
 from settings import DATABASE_URL
 
 from models.user import User
+from models.identity import Identity
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

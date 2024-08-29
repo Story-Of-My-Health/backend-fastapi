@@ -8,7 +8,7 @@ from models import user as user_model
 from schemas.user import CreateUserSchema, UserLoginSchema, UserSchema
 from services.db import user as user_db_services
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=['authentication'])
 
 
 @router.post("/signup", response_model=UserSchema)
