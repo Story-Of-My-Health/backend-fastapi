@@ -1,6 +1,7 @@
 from typing import Dict
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
+from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
 from db_initializer import get_db
@@ -8,14 +9,20 @@ from models import user as user_model
 from schemas.user import CreateUserSchema, UserLoginSchema, UserSchema
 from services.db import user as user_db_services
 
-router = APIRouter(prefix="/auth", tags=['authentication'])
+router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
 @router.post("/signup", response_model=UserSchema)
 def signup(payload: CreateUserSchema = Body(), session: Session = Depends(get_db)):
     """Processes request to register user account."""
     payload.hashed_password = user_model.User.hash_password(payload.hashed_password)
-    return user_db_services.create_user(session, user=payload)
+    try:
+        user = user_db_services.create_user(session, user=payload)
+    except exc.IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists"
+        )
+    return user
 
 
 @router.post("/login", response_model=Dict)
