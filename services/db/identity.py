@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 
-from models.identity import Identity
+from models.identity import STATUS_CHOICES, Identity
 from schemas.identity import CreateIdentitySchema, IdentityQuerySchema
 
 
@@ -25,3 +26,16 @@ def get_identity_by_id(session: Session, id: int):
 
 def get_identity_by_key(session: Session, key: str):
     return session.query(Identity).filter(Identity.identity_key == key).one()
+
+
+def set_identity_status(
+    session: Session,
+    id: int,
+    status: STATUS_CHOICES,
+):
+    identity = session.query(Identity).filter(Identity.id == id).one()
+    if identity.status != STATUS_CHOICES.pending:
+        raise exc.InvalidRequestError
+    identity.status = status
+    session.commit()
+    return identity

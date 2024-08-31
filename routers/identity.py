@@ -26,20 +26,34 @@ def get_identity(
     return identity
 
 
+def set_identity_status(session: Session, id: int, identity_status: STATUS_CHOICES):
+    try:
+        identity = identity_db_services.set_identity_status(
+            session, id, identity_status
+        )
+    except exc.InvalidRequestError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Status can no longer be modified",
+        )
+
+    return identity
+
+
 def valid_parent_sexe(session: Session, payload: CreateIdentitySchema):
     if payload.father_id:
         father: IdentitySchema = get_identity(
             lambda: identity_db_services.get_identity_by_id(session, payload.father_id),
             error_msg=f"Father identity not found",
         )
-        return father.sexe.value == SEXE_CHOICES.male.value
+        return father.sexe == SEXE_CHOICES.male
 
     if payload.mother_id:
         mother: IdentitySchema = get_identity(
             lambda: identity_db_services.get_identity_by_id(session, payload.mother_id),
             error_msg=f"Mother identity not found",
         )
-        return mother.sexe.value == SEXE_CHOICES.female.value
+        return mother.sexe == SEXE_CHOICES.female
 
     return True
 
@@ -84,3 +98,13 @@ def get_identity_by_id(id: int, session: Session = Depends(get_db)):
         lambda: identity_db_services.get_identity_by_id(session, id),
         error_msg=f"Identity with id {id} not found",
     )
+
+
+@router.post("/validate", response_model=IdentitySchema)
+def validate_identity(id: int, session: Session = Depends(get_db)):
+    return set_identity_status(session, id, STATUS_CHOICES.done)
+
+
+@router.post("/reject", response_model=IdentitySchema)
+def reject_identity(id: int, session: Session = Depends(get_db)):
+    return set_identity_status(session, id, STATUS_CHOICES.rejected)
