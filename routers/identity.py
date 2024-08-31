@@ -26,14 +26,6 @@ def get_identity(
     return identity
 
 
-def get_identity_query(**kwargs):
-    query = IdentityQuerySchema()
-    for key, value in kwargs.items():
-        if value:
-            setattr(query, key, value)
-    return query
-
-
 def valid_parent_sexe(session: Session, payload: CreateIdentitySchema):
     if payload.father_id:
         father: IdentitySchema = get_identity(
@@ -80,7 +72,7 @@ def get_identities(
             error_msg=f'Identity with identity key "{identity_key}" not found',
         )
 
-    query = get_identity_query(
+    query = IdentityQuerySchema(
         sexe=sexe, first_name=first_name, address=address, status=status
     )
     return identity_db_services.get_identities(session, query)
