@@ -29,3 +29,10 @@ class IdentitySchema(CreateIdentitySchema):
 
     class Config:
         from_attributes = True
+
+
+class IdentityQuerySchema(BaseModel):
+    first_name: Optional[str] = None
+    address: Optional[str] = None
+    sexe: Optional[SEXE_CHOICES] = None
+    status: Optional[STATUS_CHOICES] = None

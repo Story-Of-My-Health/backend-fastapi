@@ -1,7 +1,9 @@
+from typing import Optional
+
 from sqlalchemy.orm import Session
 
 from models.identity import Identity
-from schemas.identity import CreateIdentitySchema
+from schemas.identity import CreateIdentitySchema, IdentityQuerySchema
 
 
 def create_identity(session: Session, identity: CreateIdentitySchema):
@@ -13,8 +15,10 @@ def create_identity(session: Session, identity: CreateIdentitySchema):
     return db_identity
 
 
-def get_identities(session: Session):
-    return session.query(Identity).all()
+def get_identities(session: Session, query: Optional[IdentityQuerySchema] = None):
+    query_dict = query.model_dump()
+    filter = {k: v for k, v in query_dict.items() if v}
+    return session.query(Identity).filter_by(**filter).all()
 
 
 def get_identity_by_id(session: Session, id: int):

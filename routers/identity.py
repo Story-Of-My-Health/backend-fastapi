@@ -5,8 +5,8 @@ from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
 from db_initializer import get_db
-from models.identity import SEXE_CHOICES
-from schemas.identity import CreateIdentitySchema, IdentitySchema
+from models.identity import SEXE_CHOICES, STATUS_CHOICES
+from schemas.identity import CreateIdentitySchema, IdentityQuerySchema, IdentitySchema
 from services.db import identity as identity_db_services
 
 router = APIRouter(prefix="/identity", tags=["identity"])
@@ -24,6 +24,14 @@ def get_identity(
             detail=error_msg,
         )
     return identity
+
+
+def get_identity_query(**kwargs):
+    query = IdentityQuerySchema()
+    for key, value in kwargs.items():
+        if value:
+            setattr(query, key, value)
+    return query
 
 
 def valid_parent_sexe(session: Session, payload: CreateIdentitySchema):
@@ -59,15 +67,23 @@ def create_identity(
 
 @router.get("/", response_model=List[IdentitySchema] | IdentitySchema)
 def get_identities(
-    identity_key: Optional[str] = None, session: Session = Depends(get_db)
+    identity_key: Optional[str] = None,
+    sexe: Optional[SEXE_CHOICES] = None,
+    first_name: Optional[str] = None,
+    address: Optional[str] = None,
+    status: Optional[STATUS_CHOICES] = None,
+    session: Session = Depends(get_db),
 ):
-    if identity_key != None:
+    if identity_key:
         return get_identity(
             lambda: identity_db_services.get_identity_by_key(session, identity_key),
             error_msg=f'Identity with identity key "{identity_key}" not found',
         )
 
-    return identity_db_services.get_identities(session)
+    query = get_identity_query(
+        sexe=sexe, first_name=first_name, address=address, status=status
+    )
+    return identity_db_services.get_identities(session, query)
 
 
 @router.get("/{id}", response_model=List[IdentitySchema] | IdentitySchema)
