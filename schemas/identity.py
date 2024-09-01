@@ -36,3 +36,13 @@ class IdentityQuerySchema(BaseModel):
     address: Optional[str] = None
     sexe: Optional[SEXE_CHOICES] = None
     status: Optional[STATUS_CHOICES] = None
+
+
+class UpdateIdentitySchema(BaseModel):
+    first_name: str
+    last_name: Optional[str]
+    address: str
+    distinctive_trait: Optional[str]
+    profession: Optional[str]
+    father_id: Optional[int]
+    mother_id: Optional[int]

@@ -6,7 +6,12 @@ from sqlalchemy.orm import Session
 
 from db_initializer import get_db
 from models.identity import SEXE_CHOICES, STATUS_CHOICES
-from schemas.identity import CreateIdentitySchema, IdentityQuerySchema, IdentitySchema
+from schemas.identity import (
+    CreateIdentitySchema,
+    IdentityQuerySchema,
+    IdentitySchema,
+    UpdateIdentitySchema,
+)
 from services.db import identity as identity_db_services
 
 router = APIRouter(prefix="/identity", tags=["identity"])
@@ -40,7 +45,9 @@ def set_identity_status(session: Session, id: int, identity_status: STATUS_CHOIC
     return identity
 
 
-def valid_parent_sexe(session: Session, payload: CreateIdentitySchema):
+def valid_parent_sexe(
+    session: Session, payload: CreateIdentitySchema | UpdateIdentitySchema
+):
     if payload.father_id:
         father: IdentitySchema = get_identity(
             lambda: identity_db_services.get_identity_by_id(session, payload.father_id),
@@ -62,13 +69,13 @@ def valid_parent_sexe(session: Session, payload: CreateIdentitySchema):
 def create_identity(
     payload: CreateIdentitySchema = Body(), session: Session = Depends(get_db)
 ):
-    if valid_parent_sexe(session, payload):
-        return identity_db_services.create_identity(session, payload)
+    if not valid_parent_sexe(session, payload):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid parent sexe",
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Invalid parent sexe",
-    )
+    return identity_db_services.create_identity(session, payload)
 
 
 @router.get("/", response_model=List[IdentitySchema] | IdentitySchema)
@@ -108,3 +115,23 @@ def validate_identity(id: int, session: Session = Depends(get_db)):
 @router.post("/reject", response_model=IdentitySchema)
 def reject_identity(id: int, session: Session = Depends(get_db)):
     return set_identity_status(session, id, STATUS_CHOICES.rejected)
+
+
+@router.put("/edit/{id}", response_model=IdentitySchema)
+def edit_identity(
+    id: int, payload: UpdateIdentitySchema = Body(), session: Session = Depends(get_db)
+):
+    if not valid_parent_sexe(session, payload):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid parent sexe",
+        )
+    try:
+        identity = identity_db_services.update_identity(session, id, payload)
+    except exc.NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Identity with id {id} does not exist or its status is still pending or rejected",
+        )
+
+    return identity
