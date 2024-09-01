@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from db_initializer import get_db
 from models.identity import SEXE_CHOICES, STATUS_CHOICES
 from notifications import notify_client
+from auth2.auth_schema import verify_token
 from schemas.identity import (
     CreateIdentitySchema,
     IdentityQuerySchema,
@@ -99,6 +100,7 @@ def get_identities(
     first_name: Optional[str] = None,
     address: Optional[str] = None,
     status: Optional[STATUS_CHOICES] = None,
+    token: str = Depends(verify_token),
     session: Session = Depends(get_db),
 ):
     if identity_key:

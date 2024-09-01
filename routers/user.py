@@ -1,6 +1,7 @@
 from typing import Dict
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
@@ -26,7 +27,9 @@ def signup(payload: CreateUserSchema = Body(), session: Session = Depends(get_db
 
 
 @router.post("/login", response_model=Dict)
-def login(payload: UserLoginSchema = Body(), session: Session = Depends(get_db)):
+def login(
+    payload: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_db)
+):
     """Processes user's authentication and returns a token
     on successful authentication.
 
