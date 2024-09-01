@@ -16,5 +16,6 @@ class NotificationModel(enum.Enum):
 
 class NotificationSchema(BaseModel):
     id: Optional[int] = None
+    performer_id: int
     model: str
     action: str

@@ -27,6 +27,7 @@ async def websocket_endpoint(websocket: WebSocket):
 async def test_ws():
     await notify_client(
         NotificationSchema(
+            performer_id=5,
             action=NotificationAction.UPDATE.value,
             model=NotificationModel.IDENTITY.value,
         )

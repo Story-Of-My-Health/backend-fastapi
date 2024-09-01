@@ -72,7 +72,7 @@ def valid_parent_sexe(
 
 
 @router.post("/", response_model=IdentitySchema)
-def create_identity(
+async def create_identity(
     payload: CreateIdentitySchema = Body(), session: Session = Depends(get_db)
 ):
     if not valid_parent_sexe(session, payload):
@@ -80,6 +80,14 @@ def create_identity(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid parent sexe",
         )
+
+    await notify_client(
+        NotificationSchema(
+            performer_id=0,
+            action=NotificationAction.CREATE.value,
+            model=NotificationModel.IDENTITY.value,
+        )
+    )
 
     return identity_db_services.create_identity(session, payload)
 
@@ -132,7 +140,7 @@ async def edit_identity(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid parent sexe",
         )
-    
+
     try:
         identity = identity_db_services.update_identity(session, id, payload)
     except exc.NoResultFound:
@@ -143,6 +151,7 @@ async def edit_identity(
 
     await notify_client(
         NotificationSchema(
+            performer_id=0,
             action=NotificationAction.UPDATE.value,
             model=NotificationModel.IDENTITY.value,
         )
