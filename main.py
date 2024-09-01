@@ -3,6 +3,11 @@ from fastapi import FastAPI, WebSocket
 from notifications import clients, notify_client
 from routers.identity import router as identity_touter
 from routers.user import router as user_router
+from schemas.notification import (
+    NotificationAction,
+    NotificationModel,
+    NotificationSchema,
+)
 
 app = FastAPI()
 
@@ -20,7 +25,12 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/test-ws", tags=["WS"])
 async def test_ws():
-    await notify_client("Update done")
+    await notify_client(
+        NotificationSchema(
+            action=NotificationAction.UPDATE.value,
+            model=NotificationModel.IDENTITY.value,
+        )
+    )
     return {"ok": "ok"}
 
 

@@ -6,11 +6,17 @@ from sqlalchemy.orm import Session
 
 from db_initializer import get_db
 from models.identity import SEXE_CHOICES, STATUS_CHOICES
+from notifications import notify_client
 from schemas.identity import (
     CreateIdentitySchema,
     IdentityQuerySchema,
     IdentitySchema,
     UpdateIdentitySchema,
+)
+from schemas.notification import (
+    NotificationAction,
+    NotificationModel,
+    NotificationSchema,
 )
 from services.db import identity as identity_db_services
 
@@ -118,7 +124,7 @@ def reject_identity(id: int, session: Session = Depends(get_db)):
 
 
 @router.put("/edit/{id}", response_model=IdentitySchema)
-def edit_identity(
+async def edit_identity(
     id: int, payload: UpdateIdentitySchema = Body(), session: Session = Depends(get_db)
 ):
     if not valid_parent_sexe(session, payload):
@@ -126,6 +132,7 @@ def edit_identity(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid parent sexe",
         )
+    
     try:
         identity = identity_db_services.update_identity(session, id, payload)
     except exc.NoResultFound:
@@ -133,5 +140,12 @@ def edit_identity(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Identity with id {id} does not exist or its status is still pending or rejected",
         )
+
+    await notify_client(
+        NotificationSchema(
+            action=NotificationAction.UPDATE.value,
+            model=NotificationModel.IDENTITY.value,
+        )
+    )
 
     return identity
