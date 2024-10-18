@@ -1,9 +1,17 @@
+import enum
+
 import bcrypt
 import jwt
-from sqlalchemy import Column, Integer, LargeBinary, String
+from sqlalchemy import Column, Enum, Integer, LargeBinary, String
 
 import settings
 from db_initializer import Base
+
+
+class USER_TYPE_CHOICES(enum.Enum):
+    regular = "regular"
+    doctor = "doctor"
+    admin = "admin"
 
 
 class User(Base):
@@ -12,6 +20,7 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     email = Column(String(225), nullable=True)
     hashed_password = Column(LargeBinary, nullable=False)
+    user_type = Column(Enum(USER_TYPE_CHOICES), default=USER_TYPE_CHOICES.regular)
 
     @staticmethod
     def hash_password(password: str) -> str:
