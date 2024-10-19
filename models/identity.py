@@ -3,6 +3,7 @@ import random
 import string
 
 from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from db_initializer import Base
 
@@ -33,13 +34,14 @@ class Identity(Base):
     status = Column(
         Enum(STATUS_CHOICES), nullable=False, default=STATUS_CHOICES.pending
     )
-
     father_id = Column(
         Integer, ForeignKey("identity.id", ondelete="SET NULL"), nullable=True
     )
     mother_id = Column(
         Integer, ForeignKey("identity.id", ondelete="SET NULL"), nullable=True
     )
+
+    user = relationship("user", back_populates="identity", uselist=False)
 
     @staticmethod
     def generate_identity_id(length=12):

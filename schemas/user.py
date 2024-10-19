@@ -9,6 +9,7 @@ class UserBaseSchema(BaseModel):
 
 
 class CreateUserSchema(UserBaseSchema):
+    identity_key: str
     hashed_password: str = Field(alias="password")
 
 

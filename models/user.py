@@ -2,7 +2,8 @@ import enum
 
 import bcrypt
 import jwt
-from sqlalchemy import Column, Enum, Integer, LargeBinary, String
+from sqlalchemy import Column, Enum, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy.orm import relationship
 
 import settings
 from db_initializer import Base
@@ -21,6 +22,9 @@ class User(Base):
     email = Column(String(225), nullable=True)
     hashed_password = Column(LargeBinary, nullable=False)
     user_type = Column(Enum(USER_TYPE_CHOICES), default=USER_TYPE_CHOICES.regular)
+    identity_id = Column(Integer, ForeignKey("identity.id"), nullable=False)
+
+    identity = relationship("identity", back_populates="user")
 
     @staticmethod
     def hash_password(password: str) -> str:
