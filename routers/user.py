@@ -5,9 +5,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
+from auth2.auth_schema import verify_token
 from db_initializer import get_db
 from models import user as user_model
-from schemas.user import CreateUserSchema, UserLoginSchema, UserSchema
+from schemas.user import CreateUserSchema, DecodedToken, UserSchema
 from services.db import user as user_db_services
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -21,7 +22,8 @@ def signup(payload: CreateUserSchema = Body(), session: Session = Depends(get_db
         user = user_db_services.create_user(session, user=payload)
     except exc.IntegrityError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists or identity does not exist or belongs to existing user",
         )
     return user
 
@@ -56,3 +58,11 @@ def login(
         )
 
     return user.generate_token()
+
+
+@router.get("/me", response_model=UserSchema)
+def me(
+    current_user: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    return user_db_services.get_user_by_id(session, current_user.id)

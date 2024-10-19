@@ -41,7 +41,7 @@ class Identity(Base):
         Integer, ForeignKey("identity.id", ondelete="SET NULL"), nullable=True
     )
 
-    user = relationship("user", back_populates="identity", uselist=False)
+    user = relationship("User", back_populates="identity", uselist=False)
 
     @staticmethod
     def generate_identity_id(length=12):

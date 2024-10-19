@@ -22,9 +22,11 @@ class User(Base):
     email = Column(String(225), nullable=True)
     hashed_password = Column(LargeBinary, nullable=False)
     user_type = Column(Enum(USER_TYPE_CHOICES), default=USER_TYPE_CHOICES.regular)
-    identity_id = Column(Integer, ForeignKey("identity.id"), nullable=False)
+    identity_id = Column(
+        Integer, ForeignKey("identity.id"), nullable=False, unique=True
+    )
 
-    identity = relationship("identity", back_populates="user")
+    identity = relationship("Identity", back_populates="user", uselist=False)
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -37,6 +39,13 @@ class User(Base):
         """Generate access token for user"""
         return {
             "access_token": jwt.encode(
-                {"username": self.username, "email": self.email}, settings.SECRET_KEY
+                {
+                    "id": self.id,
+                    "username": self.username,
+                    "email": self.email,
+                    "user_type": self.user_type.value,
+                    "identity_id": self.identity_id,
+                },
+                settings.SECRET_KEY,
             )
         }

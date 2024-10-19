@@ -1,8 +1,9 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import Depends, FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
+from auth2.auth_schema import verify_token
 from notifications import clients, notify_client
-from routers.identity import router as identity_touter
+from routers.identity import router as identity_router
 from routers.user import router as user_router
 from schemas.notification import (
     NotificationAction,
@@ -47,4 +48,4 @@ async def test_ws():
 
 
 app.include_router(user_router)
-app.include_router(identity_touter)
+app.include_router(identity_router, dependencies=[Depends(verify_token)])
