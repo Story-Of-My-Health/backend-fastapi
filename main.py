@@ -48,4 +48,8 @@ async def test_ws():
 
 
 app.include_router(user_router)
-app.include_router(identity_router, dependencies=[Depends(verify_token)])
+app.include_router(
+    identity_router, 
+    # Comment this to create identity for first time
+    dependencies=[Depends(verify_token)]
+)

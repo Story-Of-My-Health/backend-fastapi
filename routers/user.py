@@ -2,6 +2,7 @@ from typing import Dict
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
@@ -11,10 +12,10 @@ from models import user as user_model
 from schemas.user import CreateUserSchema, DecodedToken, UserSchema
 from services.db import user as user_db_services
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter()
 
 
-@router.post("/signup", response_model=UserSchema)
+@router.post("/auth/signup", response_model=UserSchema, tags=["authentication"])
 def signup(payload: CreateUserSchema = Body(), session: Session = Depends(get_db)):
     """Processes request to register user account."""
     payload.hashed_password = user_model.User.hash_password(payload.hashed_password)
@@ -28,7 +29,7 @@ def signup(payload: CreateUserSchema = Body(), session: Session = Depends(get_db
     return user
 
 
-@router.post("/login", response_model=Dict)
+@router.post("/auth/login", response_model=Dict, tags=["authentication"])
 def login(
     payload: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_db)
 ):
@@ -60,9 +61,29 @@ def login(
     return user.generate_token()
 
 
-@router.get("/me", response_model=UserSchema)
-def me(
+@router.get("/user/me", response_model=UserSchema, tags=["User"])
+def get_me(
     current_user: DecodedToken = Depends(verify_token),
     session: Session = Depends(get_db),
 ):
     return user_db_services.get_user_by_id(session, current_user.id)
+
+
+class SetTypePayload(BaseModel):
+    user_type: user_model.USER_TYPE_CHOICES
+
+
+@router.post("/user/set-type/{id}", response_model=UserSchema, tags=["User"])
+def set_user_as_doctor(
+    id: int,
+    payload: SetTypePayload = Body(),
+    current_user: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    # Comment this for creation of first admin
+    if current_user.user_type != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You cannot perform this action",
+        )
+    return user_db_services.set_user_type(session, id, payload.user_type)
