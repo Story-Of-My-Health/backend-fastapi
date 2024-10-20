@@ -10,6 +10,7 @@ from settings import DATABASE_URL
 
 from models.user import User
 from models.identity import Identity
+from models.disease import Disease
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
