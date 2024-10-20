@@ -8,7 +8,7 @@ from alembic import context
 from db_initializer import Base
 from settings import DATABASE_URL
 
-from models.user import User
+from models.user import User, DoctorProfile
 from models.identity import Identity
 from models.disease import Disease
 

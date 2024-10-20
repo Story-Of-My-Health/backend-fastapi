@@ -49,3 +49,14 @@ class User(Base):
                 settings.SECRET_KEY,
             )
         }
+
+
+class DoctorProfile(Base):
+    __tablename__ = "doctor_profile"
+    id = Column(Integer, nullable=False, primary_key=True)
+    title = Column(String(255), nullable=False)
+    establishment = Column(String(255), nullable=False)
+    address = Column(String(255), nullable=True)
+    keywords = Column(String(255), nullable=False)
+
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False, unique=True)
