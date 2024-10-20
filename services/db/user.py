@@ -1,7 +1,9 @@
+from typing import List
+
 from sqlalchemy.orm import Session
 
-from models.user import User
-from schemas.user import CreateUserSchema
+from models.user import DoctorProfile, Keyword, User
+from schemas.user import DoctorProfileBaseSchema, CreateUserSchema
 
 
 def create_user(session: Session, user: CreateUserSchema):
@@ -25,3 +27,26 @@ def set_user_type(session: Session, id: int, user_type: str):
     user.user_type = user_type
     session.commit()
     return user
+
+
+def create_doctor_profile(
+    session: Session,
+    profile: DoctorProfileBaseSchema,
+    user_id: int,
+    keywords: List[Keyword],
+):
+    new_profile = DoctorProfile(
+        address=profile.address,
+        establishment=profile.establishment,
+        keywords=keywords,
+        title=profile.title,
+        user_id=user_id,
+    )
+    session.add(new_profile)
+    session.commit()
+    session.refresh(new_profile)
+    return new_profile
+
+
+def get_doctor_profile_by_id(session: Session, id: int):
+    return session.query(DoctorProfile).filter(DoctorProfile.id == id).one()

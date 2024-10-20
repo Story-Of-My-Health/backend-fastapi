@@ -9,7 +9,14 @@ from sqlalchemy.orm import Session
 from auth2.auth_schema import verify_token
 from db_initializer import get_db
 from models import user as user_model
-from schemas.user import CreateUserSchema, DecodedToken, UserSchema
+from schemas.user import (
+    CreateDoctorProfileSchema,
+    CreateUserSchema,
+    DecodedToken,
+    DoctorProfileBaseSchema,
+    DoctorProfileSchema,
+    UserSchema,
+)
 from services.db import user as user_db_services
 
 router = APIRouter()
@@ -87,3 +94,45 @@ def set_user_as_doctor(
             detail="You cannot perform this action",
         )
     return user_db_services.set_user_type(session, id, payload.user_type)
+
+
+@router.post("/user/doctor-profile/", response_model=DoctorProfileSchema, tags=["User"])
+def create_doctor_profile(
+    payload: CreateDoctorProfileSchema = Body(),
+    current_user: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    if current_user.user_type != user_model.USER_TYPE_CHOICES.doctor.value:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Only user with user_type = 'doctor' can perform this action",
+        )
+
+    keywords = []
+
+    for keyword in payload.keywords:
+        db_keyword = session.query(user_model.Keyword).filter_by(name=keyword).first()
+
+        if db_keyword is None:
+            print("\n\n\n", keyword, "\n\n\n")
+            db_keyword = user_model.Keyword(name=keyword)
+            session.add(db_keyword)
+            session.commit()
+            session.refresh(db_keyword)
+
+        print("\n\n\n", keywords, "\n\n\n")
+        keywords.append(db_keyword)
+
+    new_profile = user_db_services.create_doctor_profile(
+        session,
+        profile=DoctorProfileBaseSchema(
+            address=payload.address,
+            establishment=payload.establishment,
+            keywords=keywords,
+            title=payload.title,
+        ),
+        user_id=current_user.id,
+        keywords=keywords,
+    )
+
+    return new_profile

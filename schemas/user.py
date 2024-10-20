@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -28,3 +28,23 @@ class DecodedToken(UserBaseSchema):
     id: int
     user_type: str
     identity_id: int
+
+
+class KeywordSchema(BaseModel):
+    id: int
+    name: str
+
+
+class DoctorProfileBaseSchema(BaseModel):
+    title: str
+    establishment: str
+    address: str
+
+
+class CreateDoctorProfileSchema(DoctorProfileBaseSchema):
+    keywords: List[str]
+
+
+class DoctorProfileSchema(DoctorProfileBaseSchema):
+    user_id: int
+    keywords: List[KeywordSchema]

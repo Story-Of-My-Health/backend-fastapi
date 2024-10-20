@@ -1,16 +1,13 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-
 from db_initializer import Base
-from settings import DATABASE_URL
-
-from models.user import User, DoctorProfile
-from models.identity import Identity
 from models.disease import Disease
+from models.identity import Identity
+from models.user import DoctorProfile, Keyword, User, profile_keyword_association
+from settings import DATABASE_URL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
