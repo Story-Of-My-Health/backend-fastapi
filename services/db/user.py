@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from models.user import DoctorProfile, Keyword, User
-from schemas.user import DoctorProfileBaseSchema, CreateUserSchema
+from schemas.user import CreateUserSchema, DoctorProfileBaseSchema
 
 
 def create_user(session: Session, user: CreateUserSchema):
@@ -50,3 +50,12 @@ def create_doctor_profile(
 
 def get_doctor_profile_by_id(session: Session, id: int):
     return session.query(DoctorProfile).filter(DoctorProfile.id == id).one()
+
+
+def get_doctor_profile_by_keyword(session: Session, keywords: List[str]):
+    return (
+        session.query(DoctorProfile)
+        .join(DoctorProfile.keywords)
+        .filter(Keyword.name.in_(keywords))
+        .all()
+    )

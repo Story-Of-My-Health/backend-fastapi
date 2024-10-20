@@ -27,7 +27,7 @@ class User(Base):
     )
 
     identity = relationship("Identity", back_populates="user", uselist=False)
-    doctor_profile = relationship("DoctorProfile", back_populates="user")
+    doctor_profile = relationship("DoctorProfile", back_populates="user", uselist=False)
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -68,7 +68,7 @@ class DoctorProfile(Base):
     address = Column(String(255), nullable=True)
     user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True)
 
-    user = relationship("User", back_populates="doctor_profile")
+    user = relationship("User", back_populates="doctor_profile", uselist=False)
     keywords = relationship(
         "Keyword", secondary=profile_keyword_association, back_populates="profiles"
     )

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -20,6 +20,14 @@ from schemas.user import (
 from services.db import user as user_db_services
 
 router = APIRouter()
+
+
+class SetTypePayload(BaseModel):
+    user_type: user_model.USER_TYPE_CHOICES
+
+
+class GetProfileByKeywordPayload(BaseModel):
+    keywords: List[str]
 
 
 @router.post("/auth/signup", response_model=UserSchema, tags=["authentication"])
@@ -76,10 +84,6 @@ def get_me(
     return user_db_services.get_user_by_id(session, current_user.id)
 
 
-class SetTypePayload(BaseModel):
-    user_type: user_model.USER_TYPE_CHOICES
-
-
 @router.post("/user/set-type/{id}", response_model=UserSchema, tags=["User"])
 def set_user_as_doctor(
     id: int,
@@ -114,13 +118,11 @@ def create_doctor_profile(
         db_keyword = session.query(user_model.Keyword).filter_by(name=keyword).first()
 
         if db_keyword is None:
-            print("\n\n\n", keyword, "\n\n\n")
             db_keyword = user_model.Keyword(name=keyword)
             session.add(db_keyword)
             session.commit()
             session.refresh(db_keyword)
 
-        print("\n\n\n", keywords, "\n\n\n")
         keywords.append(db_keyword)
 
     new_profile = user_db_services.create_doctor_profile(
@@ -136,3 +138,27 @@ def create_doctor_profile(
     )
 
     return new_profile
+
+
+@router.get(
+    "/user/doctor-profile/{id}", response_model=DoctorProfileSchema, tags=["User"]
+)
+def get_doctor_profile_by_id(
+    id: int,
+    _: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    return user_db_services.get_doctor_profile_by_id(session, id)
+
+
+@router.post(
+    "/user/doctor-profile/query",
+    response_model=List[DoctorProfileSchema],
+    tags=["User"],
+)
+def get_doctor_profile_by_keyword(
+    payload: GetProfileByKeywordPayload = Body(),
+    _: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    return user_db_services.get_doctor_profile_by_keyword(session, payload.keywords)
