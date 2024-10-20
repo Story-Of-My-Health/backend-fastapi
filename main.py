@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from auth2.auth_schema import verify_token
 from notifications import clients, notify_client
+from routers.disease import router as disease_router
 from routers.identity import router as identity_router
 from routers.user import router as user_router
 from schemas.notification import (
@@ -49,7 +50,11 @@ async def test_ws():
 
 app.include_router(user_router)
 app.include_router(
-    identity_router, 
+    disease_router,
+    dependencies=[Depends(verify_token)],
+)
+app.include_router(
+    identity_router,
     # Comment this to create identity for first time
-    dependencies=[Depends(verify_token)]
+    dependencies=[Depends(verify_token)],
 )

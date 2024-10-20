@@ -13,4 +13,4 @@ def create_disease(session: Session, disease: DiseaseSchema):
 
 
 def get_disease(session: Session, symptom_signature: str):
-    return session.query(Disease).filter(Disease.symptom_signature == symptom_signature)
+    return session.query(Disease).filter(Disease.symptom_signature == symptom_signature).one()

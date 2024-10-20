@@ -1,4 +1,4 @@
-SYMPTOMS = [
+SYMPTOMS_LIST = [
     "itching",
     "skin_rash",
     "nodal_skin_eruptions",
@@ -132,7 +132,7 @@ SYMPTOMS = [
     "yellow_crust_ooze",
 ]
 
-SAMPLE_DATA = {
+SYMPTOMS_SAMPLE = {
     "itching": 0,
     "skin_rash": 0,
     "nodal_skin_eruptions": 0,

@@ -1,11 +1,10 @@
 import math
-from typing import Dict, List
+import os
 
 import numpy as np
 import pandas as pd
-from utils import create_sample_data, generate_signature
 
-file_path = "data/training_data.csv"
+file_path = os.path.join(os.path.dirname(__file__), "training_data.csv")
 data = pd.read_csv(file_path)
 symptomes = data.columns.to_list()[:-1]
 disease = data["prognosis"].unique()
@@ -110,11 +109,8 @@ def predict(node, sample):
         raise ValueError(f"Valeur inconnue '{attribut_value}")
 
 
-symptoms = ["itching"]
-
-
-principal_node = DecisionNode(attribut=None, value=None, branche={})
-create_branch(data, "prognosis", principal_node)
-
-sample = create_sample_data(symptoms)
-print(predict(principal_node, sample))
+def prediction_wrapper(sample):
+    principal_node = DecisionNode(attribut=None, value=None, branche={})
+    create_branch(data, "prognosis", principal_node)
+    prediction = predict(principal_node, sample)
+    return prediction

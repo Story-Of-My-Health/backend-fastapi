@@ -1,10 +1,12 @@
-import enum
 import hashlib
 import json
+from typing import Dict, List
 
+import numpy as np
 from sqlalchemy import Column, Integer, String
 
 from db_initializer import Base
+from utils.constants import SYMPTOMS_LIST, SYMPTOMS_SAMPLE
 
 
 class Disease(Base):
@@ -16,5 +18,13 @@ class Disease(Base):
     @staticmethod
     def generate_signature(sample):
         json_string = json.dumps(sample)
-        signature = hashlib.sha256(json_string.encode()).hexdigest()
-        return signature
+        return hashlib.sha256(json_string.encode()).hexdigest()
+
+    @staticmethod
+    def create_sample_symptom(symptoms: List[str]) -> Dict[str, int]:
+        sample_data = SYMPTOMS_SAMPLE.copy()
+        for symptom in symptoms:
+            if symptom in np.array(SYMPTOMS_LIST):
+                sample_data[symptom] = 1
+
+        return sample_data
