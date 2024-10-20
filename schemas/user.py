@@ -5,6 +5,21 @@ from pydantic import BaseModel, EmailStr, Field
 from schemas.identity import IdentitySchema
 
 
+class MedicalHistoryBaseSchema(BaseModel):
+    symptoms: str
+    treatment: str
+
+
+class CreateMedicalHistory(MedicalHistoryBaseSchema):
+    patient_id: int
+
+
+class MedicalHistorySchema(MedicalHistoryBaseSchema):
+    id: int
+    created_by: int
+    patient_id: int
+
+
 class KeywordSchema(BaseModel):
     id: int
     name: str

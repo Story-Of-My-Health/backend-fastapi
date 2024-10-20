@@ -23,7 +23,10 @@ class User(Base):
     hashed_password = Column(LargeBinary, nullable=False)
     user_type = Column(Enum(USER_TYPE_CHOICES), default=USER_TYPE_CHOICES.regular)
     identity_id = Column(
-        Integer, ForeignKey("identity.id", ondelete="CASCADE"), nullable=False, unique=True
+        Integer,
+        ForeignKey("identity.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
     )
 
     identity = relationship("Identity", back_populates="user", uselist=False)
@@ -66,7 +69,9 @@ class DoctorProfile(Base):
     title = Column(String(255), nullable=False)
     establishment = Column(String(255), nullable=False)
     address = Column(String(255), nullable=True)
-    user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True)
+    user_id = Column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
 
     user = relationship("User", back_populates="doctor_profile", uselist=False)
     keywords = relationship(
@@ -84,3 +89,18 @@ class Keyword(Base):
         secondary=profile_keyword_association,
         back_populates="keywords",
     )
+
+
+class MedicalHistory(Base):
+    __tablename__ = "medical_history"
+    id = Column(Integer, nullable=False, primary_key=True)
+    symptoms = Column(String(500), nullable=False)
+    treatment = Column(String(500), nullable=False)
+    created_by = Column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False
+    )
+    patient_id = Column(
+        Integer, ForeignKey("identity.id", ondelete="CASCADE"), nullable=False
+    )
+
+    patient = relationship("Identity", back_populates="medical_history", uselist=False)

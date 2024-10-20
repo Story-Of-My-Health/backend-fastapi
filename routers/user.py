@@ -9,14 +9,10 @@ from sqlalchemy.orm import Session
 from auth2.auth_schema import verify_token
 from db_initializer import get_db
 from models import user as user_model
-from schemas.user import (
-    CreateDoctorProfileSchema,
-    CreateUserSchema,
-    DecodedToken,
-    DoctorProfileBaseSchema,
-    DoctorProfileSchema,
-    UserSchema,
-)
+from schemas.user import (CreateDoctorProfileSchema, CreateMedicalHistory,
+                          CreateUserSchema, DecodedToken,
+                          DoctorProfileBaseSchema, DoctorProfileSchema,
+                          MedicalHistorySchema, UserSchema)
 from services.db import user as user_db_services
 
 router = APIRouter()
@@ -85,7 +81,7 @@ def get_me(
 
 
 @router.post("/user/set-type/{id}", response_model=UserSchema, tags=["User"])
-def set_user_as_doctor(
+def set_user_type(
     id: int,
     payload: SetTypePayload = Body(),
     current_user: DecodedToken = Depends(verify_token),
@@ -162,3 +158,60 @@ def get_doctor_profile_by_keyword(
     session: Session = Depends(get_db),
 ):
     return user_db_services.get_doctor_profile_by_keyword(session, payload.keywords)
+
+
+@router.post(
+    "/user/medical-history/",
+    response_model=MedicalHistorySchema,
+    tags=["User"],
+)
+def create_medical_history(
+    payload: CreateMedicalHistory = Body(),
+    current_user: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    if current_user.user_type != user_model.USER_TYPE_CHOICES.doctor.value:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Only user with user_type = 'doctor' can perform this action",
+        )
+    return user_db_services.create_medical_history(session, payload, current_user.id)
+
+
+@router.get(
+    "/user/medical-history/{id}",
+    response_model=MedicalHistorySchema,
+    tags=["User"],
+)
+def get_medical_history_by_id(
+    id: int,
+    _: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    return user_db_services.get_medical_history_by_id(session, id)
+
+
+@router.get(
+    "/user/medical-history/identity/{id}",
+    response_model=List[MedicalHistorySchema],
+    tags=["User"],
+)
+def get_medical_history_by_identity_id(
+    id: int,
+    _: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    return user_db_services.get_medical_history_by_patient_id(session, id)
+
+
+@router.get(
+    "/user/medical-history/created-by/{id}",
+    response_model=List[MedicalHistorySchema],
+    tags=["User"],
+)
+def get_medical_history_by_creator_id(
+    id: int,
+    _: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    return user_db_services.get_medical_history_by_creator_id(session, id)

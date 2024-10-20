@@ -42,6 +42,7 @@ class Identity(Base):
     )
 
     user = relationship("User", back_populates="identity", uselist=False)
+    medical_history = relationship("MedicalHistory", back_populates="patient")
 
     @staticmethod
     def generate_identity_id(length=12):

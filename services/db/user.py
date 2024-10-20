@@ -2,8 +2,9 @@ from typing import List
 
 from sqlalchemy.orm import Session
 
-from models.user import DoctorProfile, Keyword, User
-from schemas.user import CreateUserSchema, DoctorProfileBaseSchema
+from models.user import DoctorProfile, Keyword, MedicalHistory, User
+from schemas.user import (CreateMedicalHistory, CreateUserSchema,
+                          DoctorProfileBaseSchema)
 
 
 def create_user(session: Session, user: CreateUserSchema):
@@ -57,5 +58,38 @@ def get_doctor_profile_by_keyword(session: Session, keywords: List[str]):
         session.query(DoctorProfile)
         .join(DoctorProfile.keywords)
         .filter(Keyword.name.in_(keywords))
+        .all()
+    )
+
+
+def create_medical_history(
+    session: Session,
+    history: CreateMedicalHistory,
+    created_by: int,
+):
+    new_history = MedicalHistory(**history.model_dump())
+    new_history.created_by = created_by
+    session.add(new_history)
+    session.commit()
+    session.refresh(new_history)
+    return new_history
+
+
+def get_medical_history_by_id(session: Session, id: int):
+    return session.query(MedicalHistory).filter(MedicalHistory.id == id).one()
+
+
+def get_medical_history_by_patient_id(session: Session, patient_id: int):
+    return (
+        session.query(MedicalHistory)
+        .filter(MedicalHistory.patient_id == patient_id)
+        .all()
+    )
+
+
+def get_medical_history_by_creator_id(session: Session, creator_id: int):
+    return (
+        session.query(MedicalHistory)
+        .filter(MedicalHistory.created_by == creator_id)
         .all()
     )

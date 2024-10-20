@@ -6,7 +6,13 @@ from alembic import context
 from db_initializer import Base
 from models.disease import Disease
 from models.identity import Identity
-from models.user import DoctorProfile, Keyword, User, profile_keyword_association
+from models.user import (
+    DoctorProfile,
+    Keyword,
+    MedicalHistory,
+    User,
+    profile_keyword_association,
+)
 from settings import DATABASE_URL
 
 # this is the Alembic Config object, which provides

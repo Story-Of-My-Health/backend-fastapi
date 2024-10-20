@@ -1,9 +1,16 @@
 import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
 from models.identity import SEXE_CHOICES, STATUS_CHOICES
+
+
+class IdentityMedicalHistorySchema(BaseModel):
+    id: int
+    created_by: int
+    symptoms: str
+    treatment: str
 
 
 class IdentityBaseSchema(BaseModel):
@@ -26,6 +33,7 @@ class IdentitySchema(CreateIdentitySchema):
     id: int
     identity_key: str
     status: STATUS_CHOICES
+    medical_history: List[IdentityMedicalHistorySchema]
 
     class Config:
         from_attributes = True
