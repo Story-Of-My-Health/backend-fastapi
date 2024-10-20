@@ -9,10 +9,16 @@ from sqlalchemy.orm import Session
 from auth2.auth_schema import verify_token
 from db_initializer import get_db
 from models import user as user_model
-from schemas.user import (CreateDoctorProfileSchema, CreateMedicalHistory,
-                          CreateUserSchema, DecodedToken,
-                          DoctorProfileBaseSchema, DoctorProfileSchema,
-                          MedicalHistorySchema, UserSchema)
+from schemas.user import (
+    CreateDoctorProfileSchema,
+    CreateMedicalHistory,
+    CreateUserSchema,
+    DecodedToken,
+    DoctorProfileBaseSchema,
+    DoctorProfileSchema,
+    MedicalHistorySchema,
+    UserSchema,
+)
 from services.db import user as user_db_services
 
 router = APIRouter()
