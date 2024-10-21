@@ -2,7 +2,17 @@ import enum
 
 import bcrypt
 import jwt
-from sqlalchemy import Column, Enum, ForeignKey, Integer, LargeBinary, String, Table
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Table,
+    func,
+)
 from sqlalchemy.orm import relationship
 
 import settings
@@ -13,6 +23,12 @@ class USER_TYPE_CHOICES(enum.Enum):
     regular = "regular"
     doctor = "doctor"
     admin = "admin"
+
+
+class MEDICAL_HISTORY_STATUS(enum.Enum):
+    in_progress = "in_progress"
+    success = "success"
+    failed = "failed"
 
 
 class User(Base):
@@ -96,6 +112,9 @@ class MedicalHistory(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     symptoms = Column(String(500), nullable=False)
     treatment = Column(String(500), nullable=False)
+    disease = Column(String(500), nullable=False)
+    status = Column(Enum(MEDICAL_HISTORY_STATUS), nullable=False, default=MEDICAL_HISTORY_STATUS.in_progress)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     created_by = Column(
         Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False
     )

@@ -28,6 +28,10 @@ class SetTypePayload(BaseModel):
     user_type: user_model.USER_TYPE_CHOICES
 
 
+class SetMedicalHistoryStatusPayload(BaseModel):
+    status: user_model.MEDICAL_HISTORY_STATUS
+
+
 class GetProfileByKeywordPayload(BaseModel):
     keywords: List[str]
 
@@ -94,7 +98,7 @@ def set_user_type(
     session: Session = Depends(get_db),
 ):
     # Comment this for creation of first admin
-    if current_user.user_type != "admin":
+    if current_user.user_type != user_model.USER_TYPE_CHOICES.admin.value:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="You cannot perform this action",
@@ -102,7 +106,11 @@ def set_user_type(
     return user_db_services.set_user_type(session, id, payload.user_type)
 
 
-@router.post("/user/doctor-profile/", response_model=DoctorProfileSchema, tags=["User"])
+@router.post(
+    "/user/doctor-profile/",
+    response_model=DoctorProfileSchema,
+    tags=["User", "Doctor"],
+)
 def create_doctor_profile(
     payload: CreateDoctorProfileSchema = Body(),
     current_user: DecodedToken = Depends(verify_token),
@@ -143,7 +151,9 @@ def create_doctor_profile(
 
 
 @router.get(
-    "/user/doctor-profile/{id}", response_model=DoctorProfileSchema, tags=["User"]
+    "/user/doctor-profile/{id}",
+    response_model=DoctorProfileSchema,
+    tags=["User", "Doctor"],
 )
 def get_doctor_profile_by_id(
     id: int,
@@ -156,7 +166,7 @@ def get_doctor_profile_by_id(
 @router.post(
     "/user/doctor-profile/query",
     response_model=List[DoctorProfileSchema],
-    tags=["User"],
+    tags=["User", "Doctor"],
 )
 def get_doctor_profile_by_keyword(
     payload: GetProfileByKeywordPayload = Body(),
@@ -169,7 +179,7 @@ def get_doctor_profile_by_keyword(
 @router.post(
     "/user/medical-history/",
     response_model=MedicalHistorySchema,
-    tags=["User"],
+    tags=["User", "Medical history"],
 )
 def create_medical_history(
     payload: CreateMedicalHistory = Body(),
@@ -187,7 +197,7 @@ def create_medical_history(
 @router.get(
     "/user/medical-history/{id}",
     response_model=MedicalHistorySchema,
-    tags=["User"],
+    tags=["User", "Medical history"],
 )
 def get_medical_history_by_id(
     id: int,
@@ -200,7 +210,7 @@ def get_medical_history_by_id(
 @router.get(
     "/user/medical-history/identity/{id}",
     response_model=List[MedicalHistorySchema],
-    tags=["User"],
+    tags=["User", "Medical history"],
 )
 def get_medical_history_by_identity_id(
     id: int,
@@ -213,7 +223,7 @@ def get_medical_history_by_identity_id(
 @router.get(
     "/user/medical-history/created-by/{id}",
     response_model=List[MedicalHistorySchema],
-    tags=["User"],
+    tags=["User", "Medical history"],
 )
 def get_medical_history_by_creator_id(
     id: int,
@@ -221,3 +231,39 @@ def get_medical_history_by_creator_id(
     session: Session = Depends(get_db),
 ):
     return user_db_services.get_medical_history_by_creator_id(session, id)
+
+
+@router.post(
+    "/user/medical-history/set-status/{id}",
+    response_model=MedicalHistorySchema,
+    tags=["User", "Medical history"],
+)
+def set_user_type(
+    id: int,
+    payload: SetMedicalHistoryStatusPayload = Body(),
+    current_user: DecodedToken = Depends(verify_token),
+    session: Session = Depends(get_db),
+):
+    if current_user.user_type != user_model.USER_TYPE_CHOICES.doctor.value:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You cannot perform this action",
+        )
+
+    medical_history = (
+        session.query(user_model.MedicalHistory)
+        .filter(user_model.MedicalHistory.id == id)
+        .one_or_none()
+    )
+
+    if medical_history is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Medical with id {id} does not exist",
+        )
+
+    medical_history.status = payload.status
+    session.commit()
+    session.refresh(medical_history)
+
+    return medical_history
