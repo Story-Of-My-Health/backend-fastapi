@@ -267,6 +267,7 @@ def prediction_wrapper(sample):
     
     tableau_converti = [convertir_chaine(chaine) for chaine in sample]
     
-    print("tableu converti => ")
-    print(tableau_converti)
-    return "itching"
+    symptomes = ','.join(tableau_converti)
+    predicted_disease = predictDisease(symptomes)
+    
+    return predicted_disease["final_prediction"]

@@ -21,9 +21,6 @@ async def predict_disease(
     # print(symptoms)
 
     symptom_signature = Disease.generate_signature(payload.symptoms)
-    print("symptom_signature => ")
-    
-    print(symptom_signature)
 
     try:
         db_disease = disease_service.get_disease(session, symptom_signature)
