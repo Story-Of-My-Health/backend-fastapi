@@ -16,14 +16,19 @@ router = APIRouter(prefix="/disease", tags=["Disease"])
 async def predict_disease(
     payload: SymptomSchema = Body(), session: Session = Depends(get_db)
 ):
-    symptoms = Disease.create_sample_symptom(payload.symptoms)
+    # symptoms = Disease.create_sample_symptom(payload.symptoms)
+    # print("symproms =>")
+    # print(symptoms)
 
-    symptom_signature = Disease.generate_signature(symptoms)
+    symptom_signature = Disease.generate_signature(payload.symptoms)
+    print("symptom_signature => ")
+    
+    print(symptom_signature)
 
     try:
         db_disease = disease_service.get_disease(session, symptom_signature)
     except exc.NoResultFound:
-        disease_name = prediction_wrapper(symptoms)
+        disease_name = prediction_wrapper(payload.symptoms)
         db_disease = disease_service.create_disease(
             session,
             DiseaseBaseSchema(
