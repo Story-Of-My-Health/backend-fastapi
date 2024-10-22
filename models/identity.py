@@ -22,6 +22,7 @@ class STATUS_CHOICES(enum.Enum):
 class Identity(Base):
     __tablename__ = "identity"
     id = Column(Integer, nullable=False, primary_key=True)
+    profile_img = Column(String)
     identity_key = Column(String(20), nullable=False, unique=True)
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=True)

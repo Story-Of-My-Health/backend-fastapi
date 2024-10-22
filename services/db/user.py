@@ -1,10 +1,10 @@
 from typing import List
 
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from models.user import DoctorProfile, Keyword, MedicalHistory, User
-from schemas.user import (CreateMedicalHistory, CreateUserSchema,
-                          DoctorProfileBaseSchema)
+from schemas.user import CreateMedicalHistory, CreateUserSchema, DoctorProfileBaseSchema
 
 
 def create_user(session: Session, user: CreateUserSchema):
@@ -76,12 +76,18 @@ def create_medical_history(
 
 
 def get_medical_history_by_id(session: Session, id: int):
-    return session.query(MedicalHistory).filter(MedicalHistory.id == id).one()
+    return (
+        session.query(MedicalHistory)
+        .order_by(desc(MedicalHistory.created_at))
+        .filter(MedicalHistory.id == id)
+        .one()
+    )
 
 
 def get_medical_history_by_patient_id(session: Session, patient_id: int):
     return (
         session.query(MedicalHistory)
+        .order_by(desc(MedicalHistory.created_at))
         .filter(MedicalHistory.patient_id == patient_id)
         .all()
     )
@@ -90,6 +96,7 @@ def get_medical_history_by_patient_id(session: Session, patient_id: int):
 def get_medical_history_by_creator_id(session: Session, creator_id: int):
     return (
         session.query(MedicalHistory)
+        .order_by(desc(MedicalHistory.created_at))
         .filter(MedicalHistory.created_by == creator_id)
         .all()
     )

@@ -34,6 +34,7 @@ class IdentitySchema(CreateIdentitySchema):
     identity_key: str
     status: STATUS_CHOICES
     medical_history: List[IdentityMedicalHistorySchema]
+    profile_img: Optional[str] = Field(None)
 
     class Config:
         from_attributes = True

@@ -1,13 +1,17 @@
+import os
+import shutil
+import uuid
 from typing import Callable, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
+from auth2.auth_schema import verify_token
 from db_initializer import get_db
-from models.identity import SEXE_CHOICES, STATUS_CHOICES
+from models.identity import SEXE_CHOICES, STATUS_CHOICES, Identity
+from models.user import USER_TYPE_CHOICES
 from notifications import notify_client
-
 from schemas.identity import (
     CreateIdentitySchema,
     IdentityQuerySchema,
@@ -19,9 +23,17 @@ from schemas.notification import (
     NotificationModel,
     NotificationSchema,
 )
+from schemas.user import DecodedToken
 from services.db import identity as identity_db_services
 
 router = APIRouter(prefix="/identity", tags=["identity"])
+
+UPLOAD_DIR = "./static/img"
+
+
+def generate_uuid_filename(filename: str):
+    extension = os.path.splitext(filename)[1]
+    return f"{uuid.uuid4()}{extension}"
 
 
 def get_identity(
@@ -157,5 +169,33 @@ async def edit_identity(
             model=NotificationModel.IDENTITY.value,
         )
     )
+
+    return identity
+
+
+@router.post("/upload-img/", response_model=IdentitySchema)
+async def upload_profile_img(
+    profile_img: UploadFile = File(...),
+    session: Session = Depends(get_db),
+    current_user: DecodedToken = Depends(verify_token),
+):
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+
+    filename = generate_uuid_filename(profile_img.filename)
+    img_location = os.path.join(UPLOAD_DIR, filename)
+
+    with open(img_location, "wb") as buffer:
+        shutil.copyfileobj(profile_img.file, buffer)
+
+    identity = (
+        session.query(Identity)
+        .filter(Identity.id == current_user.identity_id)
+        .one_or_none()
+    )
+
+    identity.profile_img = img_location[len("./static/") :]
+    session.commit()
+    session.refresh(identity)
 
     return identity

@@ -1,13 +1,16 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from models.user import MEDICAL_HISTORY_STATUS
 from schemas.identity import IdentitySchema
 
 
 class MedicalHistoryBaseSchema(BaseModel):
     symptoms: str
     treatment: str
+    disease: str
 
 
 class CreateMedicalHistory(MedicalHistoryBaseSchema):
@@ -18,6 +21,8 @@ class MedicalHistorySchema(MedicalHistoryBaseSchema):
     id: int
     created_by: int
     patient_id: int
+    status: MEDICAL_HISTORY_STATUS
+    created_at: datetime
 
 
 class KeywordSchema(BaseModel):

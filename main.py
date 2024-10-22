@@ -1,5 +1,7 @@
 from fastapi import Depends, FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 
 from auth2.auth_schema import verify_token
 from notifications import clients, notify_client
@@ -13,6 +15,8 @@ from schemas.notification import (
 )
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"))
 
 origins = ["http://localhost:5173", "http://localhost:3000"]
 
