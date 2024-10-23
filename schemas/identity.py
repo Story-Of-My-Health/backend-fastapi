@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 
 from models.identity import SEXE_CHOICES, STATUS_CHOICES
 
+class UserSchema(BaseModel):
+    id: int
+    user_type: str
 
 class IdentityMedicalHistorySchema(BaseModel):
     id: int
@@ -35,7 +38,7 @@ class IdentitySchema(CreateIdentitySchema):
     status: STATUS_CHOICES
     medical_history: List[IdentityMedicalHistorySchema]
     profile_img: Optional[str] = Field(None)
-
+    user: Optional[UserSchema] = Field(None)
     class Config:
         from_attributes = True
 
